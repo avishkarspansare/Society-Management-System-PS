@@ -49,9 +49,7 @@ public class UserAccount {
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
-
     
-
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
