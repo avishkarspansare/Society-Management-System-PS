@@ -4,7 +4,6 @@ import com.societyledger.auth.dto.request.*;
 import com.societyledger.auth.dto.response.LoginResponse;
 import com.societyledger.auth.dto.response.UserProfileResponse;
 import com.societyledger.auth.service.AuthService;
-import com.societyledger.auth.service.JwtService;
 import com.societyledger.common.dto.ApiResponse;
 import com.societyledger.common.security.JwtClaims;
 import jakarta.validation.Valid;
