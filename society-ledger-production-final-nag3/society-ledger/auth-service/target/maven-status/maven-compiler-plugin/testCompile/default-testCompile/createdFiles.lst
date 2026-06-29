@@ -1,0 +1,3 @@
+com\societyledger\auth\controller\AuthControllerIntegrationTest.class
+com\societyledger\auth\service\OtpServiceTest.class
+com\societyledger\auth\service\JwtServiceTest.class

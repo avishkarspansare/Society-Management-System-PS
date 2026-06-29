@@ -1,0 +1,97 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: receipt-service
+
+  # ── One Neon database, schema-isolated ──────────────────────
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/neondb}
+    username: ${DB_USERNAME:sl_user}
+    password: ${DB_PASSWORD:sl_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: receipt-service-pool
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: receipt
+        default_batch_fetch_size: 20
+        format_sql: false
+
+  # ── Flyway — migrates ONLY the service's own schema ─────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    schemas: receipt
+    default-schema: receipt
+
+
+app:
+  statement-service:
+    url: ${STATEMENT_SERVICE_URL:http://localhost:8084}
+  society-service:
+    url: ${SOCIETY_SERVICE_URL:http://localhost:8082}
+  receipt:
+    storage-dir: ${RECEIPT_STORAGE_DIR:/app/data/receipts}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.societyledger: INFO
+    org.flywaydb: INFO
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      society-service-client:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      statement-service-client:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  retry:
+    instances:
+      society-service-client:
+        maxAttempts: 3
+        waitDuration: 500ms
+      statement-service-client:
+        maxAttempts: 3
+        waitDuration: 500ms
+
+feign:
+  circuitbreaker:
+    enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
