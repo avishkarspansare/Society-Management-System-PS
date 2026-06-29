@@ -1,0 +1,91 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOriginPatterns: "*"
+            allowedMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        # Auth Service (public — no JWT validation)
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        # Society Service
+        - id: society-service
+          uri: ${SOCIETY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/societies/**
+          filters:
+            - name: JwtAuthFilter
+
+        # Finance Service
+        - id: finance-service
+          uri: ${FINANCE_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/finance/**
+          filters:
+            - name: JwtAuthFilter
+
+        # Statement Service
+        - id: statement-service
+          uri: ${STATEMENT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/statements/**
+          filters:
+            - name: JwtAuthFilter
+
+        # Receipt Service
+        - id: receipt-service
+          uri: ${RECEIPT_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/v1/receipts/**
+          filters:
+            - name: JwtAuthFilter
+
+        # Audit Service
+        - id: audit-service
+          uri: ${AUDIT_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/v1/audit/**
+          filters:
+            - name: JwtAuthFilter
+
+        # Query Service
+        - id: query-service
+          uri: ${QUERY_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/v1/queries/**
+          filters:
+            - name: JwtAuthFilter
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:society-ledger-super-secret-key-must-be-at-least-256-bits-long-for-hs256}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.societyledger: INFO
